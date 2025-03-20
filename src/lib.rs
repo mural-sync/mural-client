@@ -26,6 +26,16 @@ async fn get_current_digest(server_url: &str, pool_name: &str) -> Result<String,
     .await?)
 }
 
+async fn get_interval(server_url: &str) -> Result<u32, anyhow::Error> {
+    tracing::info!("getting current digest");
+    Ok(reqwest::get(format!("{}/interval", server_url))
+        .await?
+        .text()
+        .await?
+        .parse::<u32>()
+        .unwrap())
+}
+
 async fn get_local_wallpaper(
     base_dirs: &xdg::BaseDirectories,
     digest: &str,
@@ -69,10 +79,10 @@ async fn update_wallpaper(
             ))
             .await?;
 
-			if !wallpaper_response.status().is_success() {
-    			tracing::error!("failed to get wallpaper");
-				return Ok(digest);
-			}
+            if !wallpaper_response.status().is_success() {
+                tracing::error!("failed to get wallpaper");
+                return Ok(digest);
+            }
 
             let content_type = wallpaper_response
                 .headers()
@@ -100,7 +110,7 @@ async fn update_wallpaper(
 
 pub async fn run() -> Result<(), anyhow::Error> {
     let server_url =
-        std::env::var("MURAL_CLIENT_SERVER_URL").unwrap_or("http://localhost:8080".to_string());
+        std::env::var("MURAL_CLIENT_SERVER_URL").unwrap_or("http://localhost:46666".to_string());
     let pool_name = std::env::var("MURAL_CLIENT_POOL_NAME").unwrap_or("default".to_string());
 
     let base_dirs = xdg::BaseDirectories::with_prefix("mural_client")?;
@@ -111,6 +121,18 @@ pub async fn run() -> Result<(), anyhow::Error> {
     loop {
         last_digest = update_wallpaper(&server_url, &base_dirs, &pool_name, &last_digest).await?;
 
-        std::thread::sleep(std::time::Duration::from_secs(600));
+        let interval = get_interval(&server_url).await? as u64;
+
+        let current_timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let next_timestamp =
+            ((current_timestamp as f64 / interval as f64) + 1.0).floor() as u64 * interval;
+        let delay = next_timestamp - current_timestamp;
+
+        tracing::info!("next: {}", next_timestamp);
+
+        std::thread::sleep(std::time::Duration::from_secs(delay));
     }
 }
