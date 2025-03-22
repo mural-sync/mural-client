@@ -145,8 +145,10 @@ fn set_wallpaper(wallpaper_path: &Path) -> Result<()> {
         }
         _ => std::process::Command::new("swww")
             .arg("img")
-            .arg("--transition-step")
-            .arg("30")
+            .arg("--transition-type")
+            .arg("fade")
+            .arg("--transition-bezier")
+            .arg("0,0,1,1")
             .arg(wallpaper_path)
             .spawn()
             .map_err(Error::WallpaperSetCommand)?
