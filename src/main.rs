@@ -1,9 +1,10 @@
 use std::process::ExitCode;
 
-fn main() -> ExitCode {
+#[tokio::main]
+async fn main() -> ExitCode {
     tracing_subscriber::fmt::init();
 
-    if let Err(e) = mural_client::run() {
+    if let Err(e) = mural_client::run().await {
         eprintln!("error: {}", e);
         return ExitCode::from(1);
     }

@@ -8,6 +8,8 @@ const TARGET: &str = "mural_client::config";
 pub struct Config {
     #[serde(default = "default_server_url")]
     server_url: String,
+    #[serde(default = "default_pool_name")]
+    pool_name: String,
 }
 
 impl Config {
@@ -36,8 +38,16 @@ impl Config {
                 .map(|base_dirs| base_dirs.get_config_home()))
             .map_err(|_| Error::ConfigHome)
     }
+
+    pub fn server_url(&self) -> &String {
+        &self.server_url
+    }
 }
 
 fn default_server_url() -> String {
     "http://localhost:46666".to_string()
+}
+
+fn default_pool_name() -> String {
+    "default".to_string()
 }
