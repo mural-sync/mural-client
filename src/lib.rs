@@ -132,6 +132,26 @@ fn set_wallpaper(wallpaper_path: &Path) -> Result<()> {
     Ok(())
 }
 
+async fn update_wallpaper(
+    config: &Config,
+    wallpapers_path: &Path,
+    last_digest: &str,
+) -> Result<String> {
+    let current_digest = current_digest(config).await?;
+    if current_digest == last_digest {
+        info!("the wallpaper did not change; skipping");
+    } else {
+        let wallpaper_path = match find_wallpaper_path(wallpapers_path, &current_digest)? {
+            Some(wallpaper_path) => wallpaper_path,
+            None => download_current_wallpaper(wallpapers_path, config, &current_digest).await?,
+        };
+        info!("setting a new wallpaper");
+        set_wallpaper(&wallpaper_path)?;
+    }
+
+    Ok(current_digest)
+}
+
 pub async fn run() -> Result<()> {
     env::load_dotenv()?;
     let config = Config::load()?;
@@ -143,26 +163,26 @@ pub async fn run() -> Result<()> {
     let _ = std::fs::create_dir_all(&wallpapers_path);
 
     let mut last_digest = String::new();
+    let mut delay = jiff::Span::new().seconds(5);
 
     loop {
         info!("updating wallpaper");
 
-        let current_digest = current_digest(&config).await?;
-        if current_digest == last_digest {
-            info!("the wallpaper did not change; skipping");
-        } else {
-            let wallpaper_path = match find_wallpaper_path(&wallpapers_path, &current_digest)? {
-                Some(wallpaper_path) => wallpaper_path,
-                None => {
-                    download_current_wallpaper(&wallpapers_path, &config, &current_digest).await?
-                }
-            };
-            info!("setting a new wallpaper");
-            set_wallpaper(&wallpaper_path)?;
-            last_digest = current_digest;
-        }
+        last_digest = match update_wallpaper(&config, &wallpapers_path, &last_digest).await {
+            Ok(new_digest) => new_digest,
+            Err(e) => {
+                error!("updating wallpaper failed: {}", e);
+                last_digest
+            }
+        };
 
-        let delay = delay_until_next_update(&config).await?;
+        delay = match delay_until_next_update(&config).await {
+            Ok(new_delay) => new_delay,
+            Err(e) => {
+                error!("getting delay failed: {}", e);
+                delay
+            }
+        };
         std::thread::sleep(std::time::Duration::from_secs(
             delay.get_seconds() as u64 + 1,
         ));
