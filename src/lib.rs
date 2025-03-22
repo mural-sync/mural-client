@@ -34,17 +34,22 @@ async fn delay_until_next_update(config: &Config) -> Result<jiff::Span> {
 }
 
 async fn current_digest(config: &Config) -> Result<String> {
-    // TODO: handle non-200 response
-    reqwest::get(format!(
+    let digest_response = reqwest::get(format!(
         "{}/api/pool/{}/digest",
         config.server_url(),
         config.pool_name()
     ))
     .await
-    .map_err(Error::DigestRequest)?
-    .text()
-    .await
-    .map_err(Error::DigestRequest)
+    .map_err(|e| Error::DigestRequest(e.to_string()))?;
+
+    if !digest_response.status().is_success() {
+        return Err(Error::DigestRequest("response was not 200".to_string()));
+    }
+
+    digest_response
+        .text()
+        .await
+        .map_err(|e| Error::DigestRequest(e.to_string()))
 }
 
 fn find_wallpaper_path(wallpapers_path: &Path, digest: &str) -> Result<Option<PathBuf>> {
@@ -74,14 +79,17 @@ async fn download_current_wallpaper(
     digest: &str,
 ) -> Result<PathBuf> {
     info!("downloading current wallpaper");
-    // TODO: handle non-200 response
     let wallpaper_response = reqwest::get(format!(
         "{}/api/pool/{}/wallpaper",
         config.server_url(),
         config.pool_name()
     ))
     .await
-    .map_err(Error::WallpaperRequest)?;
+    .map_err(|e| Error::WallpaperRequest(e.to_string()))?;
+
+    if !wallpaper_response.status().is_success() {
+        return Err(Error::WallpaperRequest("response was not 200".to_string()));
+    }
 
     let content_type = wallpaper_response
         .headers()
@@ -99,7 +107,7 @@ async fn download_current_wallpaper(
     let image_content = wallpaper_response
         .bytes()
         .await
-        .map_err(Error::WallpaperRequest)?;
+        .map_err(|e| Error::WallpaperRequest(e.to_string()))?;
 
     std::fs::write(&wallpaper_path, image_content).map_err(Error::WallpaperWrite)?;
 

@@ -1,7 +1,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("requesting the current wallpaper failed: {0}")]
-    WallpaperRequest(reqwest::Error),
+    WallpaperRequest(String),
     #[error("failed to write the downloaded wallaper to disk: {0}")]
     WallpaperWrite(std::io::Error),
 
@@ -16,7 +16,7 @@ pub enum Error {
     InvalidInterval,
 
     #[error("requesting the current digest failed: {0}")]
-    DigestRequest(reqwest::Error),
+    DigestRequest(String),
 
     #[error("failed load a .env file: '{line_content}' on line {line_number} is invalid")]
     DotenvyParse {
