@@ -4,6 +4,8 @@ pub enum Error {
     IntervalRequest(reqwest::Error),
     #[error("the server returned an invalid interval")]
     InvalidInterval,
+    #[error("requesting the current digest failed: {0}")]
+    DigestRequest(reqwest::Error),
 
     #[error("failed load a .env file: '{line_content}' on line {line_number} is invalid")]
     DotenvyParse {

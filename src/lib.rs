@@ -28,13 +28,37 @@ async fn delay_until_next_update(config: &Config) -> Result<jiff::Span> {
     Ok(next_timestamp - current_timestamp)
 }
 
+async fn current_digest(config: &Config) -> Result<String> {
+    reqwest::get(format!(
+        "{}/api/pool/{}/digest",
+        config.server_url(),
+        config.pool_name()
+    ))
+    .await
+    .map_err(Error::DigestRequest)?
+    .text()
+    .await
+    .map_err(Error::DigestRequest)
+}
+
 pub async fn run() -> Result<()> {
     env::load_dotenv()?;
     let config = Config::load()?;
     info!("using configuration {:?}", &config);
 
+    let mut last_digest = String::new();
+
     loop {
         info!("updating wallpaper");
+
+        let current_digest = current_digest(&config).await?;
+        if current_digest == last_digest {
+            info!("the wallpaper did not change; skipping");
+        } else {
+            info!("setting a new wallpaper");
+
+            last_digest = current_digest;
+        }
 
         let delay = delay_until_next_update(&config).await?;
         std::thread::sleep(std::time::Duration::from_secs(

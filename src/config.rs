@@ -42,6 +42,10 @@ impl Config {
     pub fn server_url(&self) -> &String {
         &self.server_url
     }
+
+    pub fn pool_name(&self) -> &String {
+        &self.pool_name
+    }
 }
 
 fn default_server_url() -> String {
