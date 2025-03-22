@@ -140,6 +140,7 @@ pub async fn run() -> Result<()> {
         .map_err(|_| Error::DataHome)?
         .get_data_home();
     let wallpapers_path = data_home_path.join("wallpapers");
+    let _ = std::fs::create_dir_all(&wallpapers_path);
 
     let mut last_digest = String::new();
 
