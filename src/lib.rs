@@ -115,13 +115,42 @@ async fn download_current_wallpaper(
 }
 
 fn set_wallpaper(wallpaper_path: &Path) -> Result<()> {
-    let exit_status = std::process::Command::new("swww")
-        .arg("img")
-        .arg(wallpaper_path)
-        .spawn()
-        .map_err(Error::WallpaperSetCommand)?
-        .wait()
-        .map_err(Error::WallpaperSetCommand)?;
+    let exit_status = match std::env::var("XDG_CURRENT_DESKTOP")
+        .unwrap_or_default()
+        .as_str()
+    {
+        "GNOME" => {
+            let mut exit_status = std::process::Command::new("gsettings")
+                .arg("set")
+                .arg("org.gnome.desktop.background")
+                .arg("picture-uri")
+                .arg(format!("file://{}", wallpaper_path.display()))
+                .spawn()
+                .map_err(Error::WallpaperSetCommand)?
+                .wait()
+                .map_err(Error::WallpaperSetCommand)?;
+            if exit_status.success() {
+                exit_status = std::process::Command::new("gsettings")
+                    .arg("set")
+                    .arg("org.gnome.desktop.background")
+                    .arg("picture-uri-dark")
+                    .arg(format!("file://{}", wallpaper_path.display()))
+                    .spawn()
+                    .map_err(Error::WallpaperSetCommand)?
+                    .wait()
+                    .map_err(Error::WallpaperSetCommand)?;
+            }
+            exit_status
+        }
+        _ => std::process::Command::new("swww")
+            .arg("img")
+            .arg(wallpaper_path)
+            .spawn()
+            .map_err(Error::WallpaperSetCommand)?
+            .wait()
+            .map_err(Error::WallpaperSetCommand)?,
+    };
+
     if !exit_status.success() {
         // TODO: include stderr in error message
         return Err(Error::WallpaperSet {
