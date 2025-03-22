@@ -25,9 +25,10 @@ async fn delay_until_next_update(config: &Config) -> Result<jiff::Span> {
         .map_err(|_| Error::InvalidInterval)?;
 
     let current_timestamp = jiff::Timestamp::now();
-    let next_timestamp = jiff::Timestamp::from_second(
-        ((current_timestamp.as_second() as f64 / interval as f64) + 1.0).floor() as i64
-            * interval as i64,
+    let next_timestamp = jiff::Timestamp::from_millisecond(
+        ((current_timestamp.as_millisecond() as f64 / (interval * 1000) as f64) + 1.0).floor()
+            as i64
+            * (interval * 1000) as i64,
     )
     .expect("calculation should always succeed");
     Ok(next_timestamp - current_timestamp)
@@ -214,8 +215,11 @@ pub async fn run() -> Result<()> {
                 delay
             }
         };
-        std::thread::sleep(std::time::Duration::from_secs(
-            delay.get_seconds() as u64 + 1,
+        std::thread::sleep(std::time::Duration::from_millis(
+            delay
+                .total(jiff::Unit::Millisecond)
+                .expect("should only fail if the unit is bigger than hours") as u64
+                + 1,
         ));
     }
 }
