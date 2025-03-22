@@ -49,9 +49,15 @@ async fn current_digest(config: &Config) -> Result<String> {
 
 fn find_wallpaper_path(wallpapers_path: &Path, digest: &str) -> Result<Option<PathBuf>> {
     Ok(std::fs::read_dir(wallpapers_path)
-        .unwrap()
+        .map_err(|e| Error::WallpaperList {
+            io_error: e,
+            wallpapers_path: wallpapers_path.display().to_string(),
+        })?
         .collect::<Result<Vec<std::fs::DirEntry>, _>>()
-        .unwrap()
+        .map_err(|e| Error::WallpaperList {
+            io_error: e,
+            wallpapers_path: wallpapers_path.display().to_string(),
+        })?
         .iter()
         .map(|dir_entry| dir_entry.path())
         .find(|wallpaper_path| {
@@ -75,34 +81,45 @@ async fn download_current_wallpaper(
         config.pool_name()
     ))
     .await
-    .unwrap();
+    .map_err(Error::WallpaperRequest)?;
 
     let content_type = wallpaper_response
         .headers()
         .get("Content-Type")
-        .unwrap()
+        .expect("should always have a Content-Type")
         .to_str()
-        .unwrap()
+        .expect("content-type should always be a valid &str")
         .to_string();
-    let extension = content_type.split("/").nth(1).unwrap();
+    let extension = content_type
+        .split("/")
+        .nth(1)
+        .expect("content-type should always contain a slash");
     let wallpaper_path = wallpapers_path.join(format!("{}.{}", digest, extension));
 
-    let image_content = wallpaper_response.bytes().await.unwrap();
+    let image_content = wallpaper_response
+        .bytes()
+        .await
+        .map_err(Error::WallpaperRequest)?;
 
-    std::fs::write(&wallpaper_path, image_content).unwrap();
+    std::fs::write(&wallpaper_path, image_content).map_err(Error::WallpaperWrite)?;
 
     Ok(wallpaper_path)
 }
 
 fn set_wallpaper(wallpaper_path: &Path) -> Result<()> {
-    // TODO: handle non-zero exit status
-    let _exit_status = std::process::Command::new("swww")
+    let exit_status = std::process::Command::new("swww")
         .arg("img")
         .arg(wallpaper_path)
         .spawn()
-        .unwrap()
+        .map_err(Error::WallpaperSetCommand)?
         .wait()
-        .unwrap();
+        .map_err(Error::WallpaperSetCommand)?;
+    if !exit_status.success() {
+        // TODO: include stderr in error message
+        return Err(Error::WallpaperSet {
+            exit_code: exit_status.code().unwrap_or_default(),
+        });
+    }
 
     Ok(())
 }
@@ -112,7 +129,7 @@ pub async fn run() -> Result<()> {
     let config = Config::load()?;
 
     let data_home_path = xdg::BaseDirectories::with_prefix("mural-client")
-        .unwrap()
+        .map_err(|_| Error::DataHome)?
         .get_data_home();
     let wallpapers_path = data_home_path.join("wallpapers");
 
