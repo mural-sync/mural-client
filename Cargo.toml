@@ -10,6 +10,7 @@ repository = "https://github.com/mural-sync/mural-client"
 
 
 [dependencies]
+clap = { version = "4.5.32", features = ["cargo"] }
 dotenvy = "0.15.7"
 jiff = "0.2.4"
 reqwest = "0.12.15"

@@ -3,6 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+mod cli;
+
 mod config;
 pub(crate) use config::Config;
 
@@ -188,6 +190,8 @@ async fn update_wallpaper(
 
 pub async fn run() -> Result<()> {
     env::load_dotenv()?;
+
+    let _matches = cli::get_command().get_matches();
 
     let data_home_path = xdg::BaseDirectories::with_prefix("mural-client")
         .map_err(|_| Error::DataHome)?
