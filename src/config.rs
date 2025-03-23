@@ -6,10 +6,9 @@ const TARGET: &str = "mural_client::config";
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
+#[serde(default)]
 pub struct Config {
-    #[serde(default = "default_server_url")]
     server_url: String,
-    #[serde(default = "default_pool_name")]
     pool_name: String,
 }
 
@@ -49,10 +48,11 @@ impl Config {
     }
 }
 
-fn default_server_url() -> String {
-    "http://localhost:46666".to_string()
-}
-
-fn default_pool_name() -> String {
-    "default".to_string()
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            server_url: "http://localhost:46666".to_string(),
+            pool_name: "default".to_string(),
+        }
+    }
 }
