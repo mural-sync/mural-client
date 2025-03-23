@@ -95,7 +95,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: changelog
-          path: CHANGES.md
 
       - name: Create the release
         run: |
@@ -126,7 +125,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.target }}
-          path: ${{ github.event.repository.name }}-${{ matrix.target }}
 
       - name: Upload binary to release
         run: |
