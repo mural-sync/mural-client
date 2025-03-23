@@ -101,7 +101,7 @@ jobs:
 
       - name: Create the release
         run: |
-          gh release create --draft --title "Release ${{ github.ref }}" --notes-file CHANGES.md
+          gh release create --draft --title "Release ${{ github.ref }}" --notes-file CHANGES.md ${{ github.ref_name }}
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -132,6 +132,6 @@ jobs:
 
       - name: Upload binary to release
         run: |
-          gh release upload ${{ github.ref }} ${{ github.event.repository.name }}-${{ matrix.target }}
+          gh release upload ${{ github.ref_name }} ${{ github.event.repository.name }}-${{ matrix.target }}
         env:
           GH_TOKEN: ${{ github.token }}
