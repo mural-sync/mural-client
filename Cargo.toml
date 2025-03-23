@@ -1,6 +1,6 @@
 [package]
 name = "mural-client"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 authors = ["Silvan Schmidt <mail@silvanschmidt.ch>"]
 description = "Client software for the mural wallpaper service"
