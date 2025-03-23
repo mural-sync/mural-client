@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "*"
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -100,6 +102,8 @@ jobs:
       - name: Create the release
         run: |
           gh release create --draft --title "Release ${{ github.ref }}" --notes-file CHANGES.md
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   upload-binaries-to-release:
     needs:
@@ -129,3 +133,5 @@ jobs:
       - name: Upload binary to release
         run: |
           gh release upload ${{ github.ref }} ${{ github.event.repository.name }}-${{ matrix.target }}
+        env:
+          GH_TOKEN: ${{ github.token }}
