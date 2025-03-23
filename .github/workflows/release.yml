@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "*"
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -101,7 +99,7 @@ jobs:
 
       - name: Create the release
         run: |
-          gh release create --draft --title "Release ${{ github.ref }}" --notes-file CHANGES.md ${{ github.ref_name }}
+          gh release create --draft --title "Release ${{ github.ref_name }}" --notes-file CHANGES.md ${{ github.ref_name }}
         env:
           GH_TOKEN: ${{ github.token }}
 
