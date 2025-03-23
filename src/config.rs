@@ -13,8 +13,10 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load() -> Result<Self> {
-        let config_home_path = Self::config_home_path()?;
+    pub fn load(custom_config_dir: Option<&PathBuf>) -> Result<Self> {
+        let config_home_path = custom_config_dir
+            .map(|custom_config_dir| custom_config_dir.to_path_buf())
+            .unwrap_or(Self::config_home_path()?);
         let _ = std::fs::create_dir_all(&config_home_path);
         let config_file_path = config_home_path.join("config.toml");
 
