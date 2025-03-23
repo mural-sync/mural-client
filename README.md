@@ -24,5 +24,5 @@ This is the default configuration file:
 
 ```toml
 server_url = "http://localhost:46666" # the url of your server. see https://github.com/mural-sync/mural-server for instructions to setup a server
-pool = "default" # the pool to use
+pool_name = "default" # the pool to use
 ```
