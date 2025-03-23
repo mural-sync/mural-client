@@ -3,6 +3,10 @@ name = "mural-client"
 version = "0.2.1"
 edition = "2024"
 authors = ["Silvan Schmidt <mail@silvanschmidt.ch>"]
+description = "Client software for the mural wallpaper service"
+license = "MIT"
+license-file = "LICENSE"
+repository = "https://github.com/mural-sync/mural-client"
 
 
 [dependencies]
