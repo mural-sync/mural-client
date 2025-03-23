@@ -1,4 +1,4 @@
-# Mural Server
+# Mural Client
 
 This is the client software for mural.
 
