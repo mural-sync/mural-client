@@ -5,6 +5,7 @@ use crate::prelude::*;
 const TARGET: &str = "mural_client::config";
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default = "default_server_url")]
     server_url: String,
