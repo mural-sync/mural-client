@@ -15,10 +15,10 @@ jobs:
       targets: ${{ steps.targets.outputs.targets }}
 
     steps:
-      name: Define the target matrix
-      id: targets
-      run: |
-        echo 'targets=["x86_64-unknown-linux-gnu"]' >> "$GITHUB_OUTPUT"
+      - name: Define the target matrix
+        id: targets
+        run: |
+          echo 'targets=["x86_64-unknown-linux-gnu"]' >> "$GITHUB_OUTPUT"
   
   generate-changelog:
     name: Generate changelog
