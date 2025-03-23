@@ -188,7 +188,6 @@ async fn update_wallpaper(
 
 pub async fn run() -> Result<()> {
     env::load_dotenv()?;
-    let config = Config::load()?;
 
     let data_home_path = xdg::BaseDirectories::with_prefix("mural-client")
         .map_err(|_| Error::DataHome)?
@@ -201,6 +200,7 @@ pub async fn run() -> Result<()> {
 
     loop {
         info!("updating wallpaper");
+        let config = Config::load()?;
 
         last_digest = match update_wallpaper(&config, &wallpapers_path, &last_digest).await {
             Ok(new_digest) => new_digest,
