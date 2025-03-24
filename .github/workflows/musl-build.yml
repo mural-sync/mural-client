@@ -28,7 +28,8 @@ jobs:
       - define-matrix
 
     strategy:
-      matrix: 
+      fail-fast: false
+      matrix:
         target: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
 
     name: Build binary for ${{ matrix.target.target }}
