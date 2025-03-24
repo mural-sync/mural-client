@@ -38,7 +38,14 @@ impl Config {
             .map(|raw_file_path| Path::new(&raw_file_path).to_path_buf())
             .or(
                 directories::ProjectDirs::from("ch", "Mural Sync", "Mural Client")
-                    .map(|project_dirs| project_dirs.config_local_dir().to_path_buf())
+                    .map(|project_dirs| {
+                        project_dirs
+                            .config_local_dir()
+                            .to_path_buf()
+                            .parent()
+                            .expect("the directories crate always returns full paths")
+                            .join("mural-client")
+                    })
                     .ok_or(Error::ConfigHome),
             )
     }
