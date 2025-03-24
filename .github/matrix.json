@@ -1,0 +1,14 @@
+[
+	{
+		"runner": "ubuntu-latest",
+		"target": "x86_86-unknown-linux-gnu",
+		"container": null,
+		"install_dependencies": ""
+	},
+	{
+		"runner": "ubuntu-latest",
+		"target": "x86_86-unknown-linux-musl",
+		"container": "clux/muslrust",
+		"install_dependencies": "sudo apt-get update\nsudo apt-get install musl-tools"
+	}
+]
