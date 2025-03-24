@@ -11,6 +11,7 @@ repository = "https://github.com/mural-sync/mural-client"
 
 [dependencies]
 clap = { version = "4.5.32", features = ["cargo"] }
+directories = "6.0.0"
 dotenvy = "0.15.7"
 jiff = "0.2.4"
 reqwest = "0.12.15"
@@ -20,7 +21,6 @@ tokio = { version = "1.44.1", features = ["full"] }
 toml = "0.8.20"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
-xdg = "2.5.2"
 
 # The profile that 'dist' will build with
 [profile.dist]
