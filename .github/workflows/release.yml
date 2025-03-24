@@ -11,28 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      targets: ${{ steps.targets.outputs.targets }}
-
-    steps:
-      - name: Define the target matrix
-        id: targets
-        run: |
-          echo 'targets=["x86_64-unknown-linux-gnu"]' >> "$GITHUB_OUTPUT"
-
-  publish:
-    name: Publish to crates.io
-    runs-on: ubuntu-latest
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+    
+      - name: Define the matrix
+        id: define-matrix
+        run: |
+          echo "matrix=$(jq -c . .github/matrix.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    container: rust
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          target: ${{ matrix.target }}
+          fetch-depth: 0
 
       - name: Publish
         run: |
@@ -74,31 +75,31 @@ jobs:
 
     strategy:
       matrix:
-        target: ${{ fromJson(needs.define-matrix.outputs.targets) }}
-    
-    name: Build binary for ${{ matrix.target }}
-    runs-on: ubuntu-latest
+        target: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+
+    name: Build binary for ${{ matrix.target.target }}
+    runs-on: ${{ matrix.target.runner }}
+    container: ${{ matrix.target.container }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          target: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: |
+          ${{ matrix.target.install_dependencies }}
 
       - name: Build
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target.target }}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ github.event.repository.name }}
+          name: ${{ github.event.repository.name }}-${{ matrix.target.target }}
+          path: target/${{ matrix.target.target }}/release/${{ github.event.repository.name }}
 
   create-release:
     needs:
@@ -134,9 +135,9 @@ jobs:
 
     strategy:
       matrix:
-        target: ${{ fromJson(needs.define-matrix.outputs.targets) }}
+        target: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
 
-    name: Upload binary for ${{ matrix.target }}
+    name: Upload binary for ${{ matrix.target.target }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -150,14 +151,14 @@ jobs:
       - name: Download binary artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.target }}
+          name: ${{ github.event.repository.name }}-${{ matrix.target.target }}
 
       - name: Rename binary artifact
         run: |
-          mv ${{ github.event.repository.name }} ${{ github.event.repository.name }}-${{ matrix.target }}
+          mv ${{ github.event.repository.name }} ${{ github.event.repository.name }}-${{ matrix.target.target }}
 
       - name: Upload binary to release
         run: |
-          gh release upload ${{ github.ref_name }} ${{ github.event.repository.name }}-${{ matrix.target }}
+          gh release upload ${{ github.ref_name }} ${{ github.event.repository.name }}-${{ matrix.target.target }}
         env:
           GH_TOKEN: ${{ github.token }}
