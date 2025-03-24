@@ -2,13 +2,13 @@
 	{
 		"runner": "ubuntu-latest",
 		"target": "x86_64-unknown-linux-gnu",
-		"container": null,
+		"container": "rust",
 		"install_dependencies": ""
 	},
 	{
 		"runner": "ubuntu-latest",
 		"target": "x86_64-unknown-linux-musl",
-		"container": "alpine",
-		"install_dependencies": "apk add curl"
+		"container": "rust:alpine",
+		"install_dependencies": ""
 	}
 ]
