@@ -36,9 +36,11 @@ impl Config {
     fn config_home_path() -> Result<PathBuf> {
         std::env::var("MURAL_CLIENT_CONFIG_HOME")
             .map(|raw_file_path| Path::new(&raw_file_path).to_path_buf())
-            .or(xdg::BaseDirectories::with_prefix("mural-client")
-                .map(|base_dirs| base_dirs.get_config_home()))
-            .map_err(|_| Error::ConfigHome)
+            .or(
+                directories::ProjectDirs::from("ch", "Mural Sync", "Mural Client")
+                    .map(|project_dirs| project_dirs.config_local_dir().to_path_buf())
+                    .ok_or(Error::ConfigHome),
+            )
     }
 
     pub fn server_url(&self) -> &String {

@@ -194,9 +194,9 @@ pub async fn run() -> Result<()> {
     let matches = cli::get_command().get_matches();
     let custom_config_dir = matches.get_one::<PathBuf>("config-dir");
 
-    let data_home_path = xdg::BaseDirectories::with_prefix("mural-client")
-        .map_err(|_| Error::DataHome)?
-        .get_data_home();
+    let data_home_path = directories::ProjectDirs::from("ch", "Mural Sync", "Mural Client")
+        .map(|project_dirs| project_dirs.data_local_dir().to_path_buf())
+        .ok_or(Error::DataHome)?;
     let wallpapers_path = data_home_path.join("wallpapers");
     let _ = std::fs::create_dir_all(&wallpapers_path);
 
