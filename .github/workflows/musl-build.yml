@@ -1,3 +1,4 @@
+
 name: Build for musl
 
 on:
@@ -9,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      matrix: ${{ steps.define-matrix.outputs.targets }}
+      matrix: ${{ steps.define-matrix.outputs.matrix }}
 
     steps:
       - name: Checkout repository
