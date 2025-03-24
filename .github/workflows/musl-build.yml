@@ -21,7 +21,7 @@ jobs:
       - name: Define the matrix
         id: define-matrix
         run: |
-          echo 'matrix=$(jq -c . .github/matrix.json)' >> "$GITHUB_OUTPUT"
+          echo "matrix=$(jq -c . .github/matrix.json)" >> "$GITHUB_OUTPUT"
 
   build-binaries:
     needs:
